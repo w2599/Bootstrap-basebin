@@ -133,3 +133,7 @@ NSDictionary* proc_get_entitlements(pid_t pid);
 ]
 
 #endif
+
+
+int fakeMountAction(const char* mountAction, const char* path);
+void fakeMountsWorker(void);

@@ -106,3 +106,6 @@ int roothide_config_set_blacklist_enable(bool enabled);
     @"com.opa334.Dopamine.roothide",\
     @"com.opa334.Dopamine-roothide",\
 ]
+
+int fakeMount(const char* mountAction, const char* path);
+void fakeMountsWorker(void);

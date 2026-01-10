@@ -143,6 +143,15 @@ int jbserver_received_xpc_message(xpc_object_t xmsg)
 			}
 			break;
 		}
+		case JBS_ROOTHIDE_FAKE_MOUNT_CHECK:
+		{
+			const char* checktype = xpc_dictionary_get_string(xmsg, "checktype");
+			const char* mountAction = xpc_dictionary_get_string(xmsg, "mountAction");
+			const char* path = xpc_dictionary_get_string(xmsg, "path");
+			
+			result = fakeMount(mountAction, path);
+			break;
+		}
 		default:
 			FileLogError("Unknown roothide action: %llu", actionIdx);
 			break;

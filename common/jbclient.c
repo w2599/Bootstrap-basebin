@@ -222,3 +222,23 @@ bool jbclient_blacklist_check_bundle(const char* bundle)
 
 	return blacklisted;
 }
+
+bool jbclient_fake_mount_check(const char* mountAction, const char* path)
+{
+	bool success = false;
+
+	xpc_object_t xargs = xpc_dictionary_create_empty();
+	xpc_dictionary_set_string(xargs, "checktype", "mount");
+	xpc_dictionary_set_string(xargs, "mountAction", mountAction);
+	xpc_dictionary_set_string(xargs, "path", path);
+	xpc_object_t xreply = jbserver_xpc_send(JBS_DOMAIN_ROOTHIDE, JBS_ROOTHIDE_FAKE_MOUNT_CHECK, xargs);
+	if (xreply) {
+		int64_t result = xpc_dictionary_get_int64(xreply, "result");
+		if(result == 0) {
+			success = true;
+		}
+		xpc_release(xreply);
+	}
+
+	return success;
+}

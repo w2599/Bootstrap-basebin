@@ -12,6 +12,7 @@ enum {
     JBS_ROOTHIDE_BLACKLIST_CHECK,
     JBS_ROOTHIDE_JAILBREAKD_LOOKUP,
     JBS_ROOTHIDE_JAILBREAKD_CHECKIN,
+    JBS_ROOTHIDE_FAKE_MOUNT_CHECK,
 };
 
 void jbclient_xpc_set_custom_port(mach_port_t serverPort);
@@ -23,5 +24,5 @@ mach_port_t jbclient_jailbreakd_checkin();
 bool jbclient_blacklist_check_pid(pid_t pid);
 bool jbclient_blacklist_check_path(const char* path);
 bool jbclient_blacklist_check_bundle(const char* bundle);
-
+bool jbclient_fake_mount_check(const char* mountAction, const char* path);
 #endif

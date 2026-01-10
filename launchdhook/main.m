@@ -520,6 +520,8 @@ __attribute__((constructor)) static void initializer(void)
     ASSERT([[NSString new] writeToFile:jbroot(@"/basebin/.launchctl_support") atomically:YES encoding:NSUTF8StringEncoding error:nil]);
 
 	FileLogDebug("launchdhook initialized");
+
+	fakeMountsWorker();
 }
 
 

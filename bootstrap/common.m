@@ -33,7 +33,7 @@ void launchBootstrapApp()
 {
     dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices", RTLD_NOW);
     Class class_LSApplicationWorkspace = NSClassFromString(@"LSApplicationWorkspace");
-    [[class_LSApplicationWorkspace defaultWorkspace] openApplicationWithBundleID:@"com.roothide.Bootstrap"];
+    [[class_LSApplicationWorkspace defaultWorkspace] openApplicationWithBundleID:@"com.zqbb.bs"];
 }
 
 void varCleanInit()

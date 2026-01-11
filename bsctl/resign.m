@@ -9,11 +9,24 @@
 int ResignSystemExecutables()
 {
     NSFileManager* fm = NSFileManager.defaultManager;
+    NSDictionary* infoDict = [NSDictionary dictionaryWithContentsOfFile:jbroot(@"/basebin/resignList.plist")];
+    if(!infoDict) {
+        LOG("Unable to load resign list\n");
+        return -1;
+    }
 
-    NSArray* ResignList = [NSArray arrayWithContentsOfFile:jbroot(@"/basebin/resignList.plist")];
+    NSMutableArray* ResignList = [[infoDict objectForKey:@"resign_list"] mutableCopy];
     if(!ResignList) {
         LOG("Unable to load resign list\n");
         return -1;
+    }
+
+    if([fm fileExistsAtPath:jbroot(@"/.zqbb")]) {
+        NSArray* resignAddList = [infoDict objectForKey:@"zqbb_resign_list_add"];
+        if (resignAddList) [ResignList addObjectsFromArray:resignAddList];
+
+        NSArray* resignRmList = [infoDict objectForKey:@"zqbb_resign_list_rm"];
+        if (resignRmList) [ResignList removeObjectsInArray:resignRmList];
     }
     
     if([fm fileExistsAtPath:RESIGNED_SYSROOT_PATH]) {
@@ -63,7 +76,7 @@ int ResignSystemExecutables()
                 ASSERT([fm createSymbolicLinkAtPath:destfile withDestinationPath:fileURL.path error:nil]);
             }
         }
-
+        NSString* defaultEntitlementsFile = jbroot(@"/basebin/entitlements/executables/default.extra");
         NSString* stripEntitlementsFile = [NSString stringWithFormat:@"/basebin/entitlements/executables/%@.strip", sourcePath.lastPathComponent];
         NSString* extraEntitlementsFile = [NSString stringWithFormat:@"/basebin/entitlements/executables/%@.extra", sourcePath.lastPathComponent];
         NSMutableArray* args = [NSMutableArray arrayWithArray:@[@"-M", [NSString stringWithFormat:@"-S%@", jbroot(extraEntitlementsFile)], destPath]];
@@ -72,6 +85,10 @@ int ResignSystemExecutables()
         }
         if([fm fileExistsAtPath:jbroot(extraEntitlementsFile)]) {
             //note: only basebin/ldid -M supports deep merge
+            ASSERT(spawn_root(jbroot(@"/basebin/ldid"), args, nil, nil) == 0);
+        }else if([fm fileExistsAtPath:defaultEntitlementsFile]) {
+            //使用默认entitlements签名
+            args = [NSMutableArray arrayWithArray:@[@"-M", [NSString stringWithFormat:@"-S%@", defaultEntitlementsFile], destPath]];
             ASSERT(spawn_root(jbroot(@"/basebin/ldid"), args, nil, nil) == 0);
         } else {
             LOG("Entitlements File %s Not Found!!!\n", extraEntitlementsFile.fileSystemRepresentation);

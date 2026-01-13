@@ -9,3 +9,4 @@ dyldhook/dyldhook
 entitlements/executables/debugserver.extra
 entitlements/executables/debugserver.strip
 entitlements/executables/lockdownd.extra
+.DS_Store

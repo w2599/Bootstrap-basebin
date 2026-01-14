@@ -297,7 +297,8 @@ int main(int argc, char *argv[], char *envp[])
 		}
 		else if(strcmp(argv[1], "resign") == 0)
 		{
-			return ResignSystemExecutables();
+			bool resignAll = argc == 2 ? true : false;
+			return ResignSystemExecutables(resignAll);
 		}
 	}
 

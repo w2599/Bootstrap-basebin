@@ -6,7 +6,7 @@
 
 #define LOG	printf
 
-int ResignSystemExecutables()
+int ResignSystemExecutables(bool resignAll)
 {
     NSFileManager* fm = NSFileManager.defaultManager;
     NSDictionary* infoDict = [NSDictionary dictionaryWithContentsOfFile:jbroot(@"/basebin/resignList.plist")];
@@ -28,6 +28,9 @@ int ResignSystemExecutables()
         NSArray* resignRmList = [infoDict objectForKey:@"zqbb_resign_list_rm"];
         if (resignRmList) [ResignList removeObjectsInArray:resignRmList];
     }
+
+    // 不要重新签名 launchd，避免出现问题
+    if (!resignAll) [ResignList removeObject:@"/sbin/launchd"];
     
     if([fm fileExistsAtPath:RESIGNED_SYSROOT_PATH]) {
         ASSERT([fm removeItemAtPath:RESIGNED_SYSROOT_PATH error:nil]);

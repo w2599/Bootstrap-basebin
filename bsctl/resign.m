@@ -6,15 +6,32 @@
 
 #define LOG	printf
 
-int ResignSystemExecutables()
+int ResignSystemExecutables(bool resignAll)
 {
     NSFileManager* fm = NSFileManager.defaultManager;
+    NSDictionary* infoDict = [NSDictionary dictionaryWithContentsOfFile:jbroot(@"/basebin/resignList.plist")];
+    if(!infoDict) {
+        LOG("Unable to load resign list\n");
+        return -1;
+    }
 
-    NSArray* ResignList = [NSDictionary dictionaryWithContentsOfFile:jbroot(@"/basebin/resignList.plist")][@"executables"];
+    NSMutableArray* ResignList = [[NSDictionary dictionaryWithContentsOfFile:jbroot(@"/basebin/resignList.plist")][@"executables"] mutableCopy];
     if(!ResignList) {
         LOG("Unable to load resign list\n");
         return -1;
     }
+
+    if([fm fileExistsAtPath:jbroot(@"/.zqbb")]) {
+        NSArray* zqbbAdd = [infoDict objectForKey:@"executables_zqbb_add"];
+        if (zqbbAdd) [ResignList addObjectsFromArray:zqbbAdd];
+
+        NSArray* zqbbRm = [infoDict objectForKey:@"executables_zqbb_rm"];
+        if (zqbbRm) [ResignList removeObjectsInArray:zqbbRm];
+    }
+
+    // 不要重新签名 launchd，避免出现问题
+    if (!resignAll) [ResignList removeObject:@"/sbin/launchd"];
+    
     //*
     if([fm fileExistsAtPath:RESIGNED_SYSROOT_PATH]) {
         ASSERT([fm removeItemAtPath:RESIGNED_SYSROOT_PATH error:nil]);
@@ -80,7 +97,7 @@ int ResignSystemExecutables()
                 ASSERT([fm createSymbolicLinkAtPath:destfile withDestinationPath:fileURL.path error:nil]);
             }
         }
-
+        NSString* defaultEntitlementsFile = jbroot(@"/basebin/entitlements/executables/default.extra");
         NSString* stripEntitlementsFile = [NSString stringWithFormat:@"/basebin/entitlements/executables/%@.strip", sourcePath.lastPathComponent];
         NSString* extraEntitlementsFile = [NSString stringWithFormat:@"/basebin/entitlements/executables/%@.extra", sourcePath.lastPathComponent];
         NSMutableArray* args = [NSMutableArray arrayWithArray:@[@"-M", [NSString stringWithFormat:@"-S%@", jbroot(extraEntitlementsFile)], destPath]];
@@ -89,6 +106,10 @@ int ResignSystemExecutables()
         }
         if([fm fileExistsAtPath:jbroot(extraEntitlementsFile)]) {
             //note: only basebin/ldid -M supports deep merge
+            ASSERT(spawn_root(jbroot(@"/basebin/ldid"), args, nil, nil) == 0);
+        }else if([fm fileExistsAtPath:defaultEntitlementsFile]) {
+            //使用默认entitlements签名
+            args = [NSMutableArray arrayWithArray:@[@"-M", [NSString stringWithFormat:@"-S%@", defaultEntitlementsFile], destPath]];
             ASSERT(spawn_root(jbroot(@"/basebin/ldid"), args, nil, nil) == 0);
         } else {
             LOG("Entitlements File %s Not Found!!!\n", extraEntitlementsFile.fileSystemRepresentation);

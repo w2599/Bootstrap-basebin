@@ -47,7 +47,7 @@ NSString *getAppIdentifierFromPath(const char *path) {
 }
 
 NSArray* builtinApps = @[
-    @"com.roothide.Bootstrap",
+    @"com.zqbb.bootstrap",
 ];
 
 bool isBlacklistedApp(const char* identifier)

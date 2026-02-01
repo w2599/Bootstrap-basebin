@@ -11,3 +11,4 @@ entitlements/executables/debugserver.strip
 entitlements/executables/lockdownd.extra
 entitlements/executables/backupd.extra
 roothidehooks/backupd.x
+.DS_Store

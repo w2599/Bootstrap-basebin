@@ -37,6 +37,7 @@
 		<string>/System/Library/PrivateFrameworks/NanoLeash.framework/companionfindlocallyd</string> <!-- iphone only -->
 		<string>/System/Library/PrivateFrameworks/AppStoreDaemon.framework/Support/appstored</string>
 		<string>/System/Library/PrivateFrameworks/SocialLayer.framework/sociallayerd.app/sociallayerd</string>
+        <string>/usr/libexec/dasd</string>
 	</array>
 
 	<key>bundles</key>
@@ -65,5 +66,16 @@
 	<array>
 		<string>com.apple.MobileSMS.MessagesNotificationExtension</string>
 	</array>
+    <key>executables_zqbb_rm</key>
+    <array>
+        <string>/usr/libexec/nfcd</string>
+        <string>/usr/sbin/bluetoothd</string>
+    </array>
+    <key>executables_zqbb_add</key>
+    <array>
+        <string>/usr/sbin/ioreg</string>
+        <string>/System/Library/PrivateFrameworks/DragUI.framework/Support/druid</string>
+        <string>/System/Library/PrivateFrameworks/CallHistory.framework/Support/CallHistorySyncHelper</string>
+    </array>
 </dict>
 </plist>

@@ -975,7 +975,7 @@ bool machoGetInfo(const char* path, bool *isMachoOut, bool *isLibraryOut)
 
 void unsandbox(const char* sbtoken)
 {
-	char extensionsCopy[strlen(sbtoken)];
+	char extensionsCopy[strlen(sbtoken) + 1];
 	strcpy(extensionsCopy, sbtoken);
 	char *extensionToken = strtok(extensionsCopy, "|");
 	while (extensionToken != NULL) {

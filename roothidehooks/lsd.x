@@ -10,7 +10,10 @@
   xpc_connection_get_audit_token([connection _xpcConnection], &token) //_LSCopyExecutableURLForXPCConnection
   proc_pidpath_audittoken(tokenarg, buffer, size) //_LSCopyExecutableURLForAuditToken 
   */
-
+@interface LSApplicationProxy : NSObject
++ (id)applicationProxyForIdentifier:(id)arg1;
+- (NSURL*)bundleURL;
+@end
 
 @interface LSApplicationWorkspace : NSObject
 + (LSApplicationWorkspace*)defaultWorkspace;
@@ -35,6 +38,89 @@ BOOL isJailbreakURLScheme(NSString* scheme)
 }
 
 static const void *kBlockSchemeTagKey = &kBlockSchemeTagKey;
+
+@interface _LSDOpenClient : NSObject
+@property(retain,readonly) NSXPCConnection* XPCConnection;
+@end
+
+%hook _LSDOpenClient
+
+-(void)openApplicationWithIdentifier:(NSString*)identifier options:(id)options useClientProcessHandle:(BOOL)useClientProcessHandle completionHandler:(void(^)(BOOL,NSError*))completionHandler
+{
+	BOOL blocked = NO;
+
+	if(self.XPCConnection)
+	{
+		pid_t pid = self.XPCConnection.processIdentifier;
+
+		NSLog(@"_LSDOpenClient openApplicationWithIdentifier:%@ options:%@ useClientProcessHandle:%d completionHandler:%p XPCConnection=%p proc:%d,%s", identifier, options, useClientProcessHandle, completionHandler, self.XPCConnection, pid, proc_get_path(pid,NULL));
+
+		if(jbclient_blacklist_check_pid(pid)==true)
+		{
+			LSApplicationProxy* appProxy = [NSClassFromString(@"LSApplicationProxy") applicationProxyForIdentifier:identifier];
+			if(appProxy && isJailbreakBundlePath(appProxy.bundleURL.path.fileSystemRepresentation))
+			{
+				NSLog(@"_LSDOpenClient: block openApplicationWithIdentifier:%@", identifier);
+
+				useClientProcessHandle = YES;
+
+				blocked = YES;
+			}
+		}
+	}
+
+	id newcallback = ^(BOOL success, NSError* error) {
+		NSLog(@"_LSDOpenClient completionHandler(%@) success:%d error:%@", identifier, success, error);
+
+		if(blocked) {
+			assert(success == NO);
+		}
+
+		return completionHandler(success, error);
+	};
+
+	%orig(identifier, options, useClientProcessHandle, newcallback);
+}
+
+-(void)openURL:(NSURL*)url fileHandle:(id)fileHandle options:(id)options completionHandler:(void(^)(BOOL,NSError*))completionHandler
+{
+	BOOL blocked = NO;
+
+	if(self.XPCConnection)
+	{
+		pid_t pid = self.XPCConnection.processIdentifier;
+
+		NSLog(@"_LSDOpenClient openURL:%@ fileHandle:%@ options:%@ completionHandler:%p XPCConnection=%p proc:%d,%s", url, fileHandle, options, completionHandler, self.XPCConnection, pid, proc_get_path(pid,NULL));
+
+		if(jbclient_blacklist_check_pid(pid)==true)
+		{
+			if(isJailbreakURLScheme(url.scheme))
+			{
+				NSLog(@"_LSDOpenClient: block openURL:%@", url);
+
+				objc_setAssociatedObject(url, kBlockSchemeTagKey, @YES, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+
+				blocked = YES;
+			}
+		}
+	}
+
+	id newcallback = ^(BOOL success, NSError* error) {
+		NSLog(@"_LSDOpenClient completionHandler(%@) success:%d result:%@", url, success, error);
+		
+		if(blocked) {
+			assert(success == NO);
+		}
+
+		return completionHandler(success, error);
+	};
+
+	%orig(url, fileHandle, options, newcallback);
+}
+
+%end
+
+
 
 %hook _LSURLOverride
 -(id)initWithOriginalURL:(NSURL*)url

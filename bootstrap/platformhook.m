@@ -9,7 +9,7 @@
 #include "dobby.h"
 #include "jbclient.h"
 
-bool os_variant_has_internal_content();
+// bool os_variant_has_internal_content();
 bool (*orig_os_variant_has_internal_content)();
 bool new_os_variant_has_internal_content()
 {
